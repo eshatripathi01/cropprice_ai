@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crop Price Predictor</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --secondary-color: #2E7D32;
+            --accent-color: #8BC34A;
+            --light-color: #F1F8E9;
+            --dark-color: #1B5E20;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        
+        .navbar {
+            background-color: var(--primary-color);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            color: white !important;
+        }
+        
+        .hero-section {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 3rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+            margin-bottom: 2rem;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-header {
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+            font-weight: 600;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+        
+        .form-control:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 0.25rem rgba(76, 175, 80, 0.25);
+        }
+        
+        .result-card {
+            display: none;
+            background-color: var(--light-color);
+        }
+        
+        .result-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .loader {
+            display: none;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 2s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .feature-icon {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        
+        footer {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 1.5rem 0;
+            margin-top: 3rem;
+        }
+        
+        .chart-container {
+            height: 300px;
+            margin-top: 2rem;
+        }
+    </style>
+    <!-- Link to external CSS file -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-leaf me-2"></i>Crop Price Predictor
+            </a>
+        </div>
+    </nav>
+    
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <div class="container text-center">
+            <h1>Predict Crop Prices with AI</h1>
+            <p class="lead">Our machine learning model helps you predict modal prices for various crops across India</p>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="row">
+            <!-- Input Form -->
+            <div class="col-lg-8 mx-auto">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-calculator me-2"></i>Price Prediction Tool
+                    </div>
+                    <div class="card-body">
+                        <form id="prediction-form">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="state" class="form-label">State</label>
+                                    <select class="form-select" id="state" required>
+                                        <option value="" selected disabled>Select State</option>
+                                        {% for state in states %}
+                                        <option value="{{ state }}">{{ state }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="district" class="form-label">District</label>
+                                    <select class="form-select" id="district" required disabled>
+                                        <option value="" selected disabled>Select District</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="market" class="form-label">Market</label>
+                                    <select class="form-select" id="market" required disabled>
+                                        <option value="" selected disabled>Select Market</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="commodity" class="form-label">Commodity</label>
+                                    <select class="form-select" id="commodity" required>
+                                        <option value="" selected disabled>Select Commodity</option>
+                                        {% for commodity in commodities %}
+                                        <option value="{{ commodity }}">{{ commodity }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="variety" class="form-label">Variety</label>
+                                    <select class="form-select" id="variety" required disabled>
+                                        <option value="" selected disabled>Select Variety</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="grade" class="form-label">Grade</label>
+                                    <select class="form-select" id="grade" required disabled>
+                                        <option value="" selected disabled>Select Grade</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <!-- Min/Max price inputs removed as requested -->
+                            
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-search-dollar me-2"></i>Predict Price
+                                </button>
+                            </div>
+                        </form>
+                        
+                        <!-- Loader -->
+                        <div class="loader" id="loader"></div>
+                        
+                        <!-- Results Card -->
+                        <div class="card mt-4 result-card" id="result-card">
+                            <div class="card-body">
+                                <h4 class="card-title text-center mb-4">Crop Price Statistics</h4>
+                                
+                                <div class="row">
+                                    <!-- Yesterday's Price -->
+                                    <div class="col-md-4 text-center">
+                                        <div class="price-card">
+                                            <h5 class="date-label" id="yesterday-date">Yesterday</h5>
+                                            <div class="price-value">₹ <span id="yesterday-price">0</span></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Today's Price -->
+                                    <div class="col-md-4 text-center">
+                                        <div class="price-card today">
+                                            <h5 class="date-label" id="today-date">Today</h5>
+                                            <div class="price-value">₹ <span id="today-price">0</span></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Tomorrow's Price -->
+                                    <div class="col-md-4 text-center">
+                                        <div class="price-card">
+                                            <h5 class="date-label" id="tomorrow-date">Tomorrow</h5>
+                                            <div class="price-value">₹ <span id="tomorrow-price">0</span></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-4">
+                                    <p class="card-text text-center">These are the predicted modal prices based on historical data and market trends.</p>
+                                </div>
+                                
+                                <!-- Chart for historical prices -->
+                                <div class="chart-container mt-4">
+                                    <canvas id="price-history-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Features Section -->
+        <div class="row mt-4">
+            <div class="col-12 text-center mb-4">
+                <h2>Why Use Our Crop Price Predictor?</h2>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 text-center p-3">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h4>Accurate Predictions</h4>
+                    <p>Our model is trained on extensive historical data to provide accurate price predictions.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 text-center p-3">
+                    <div class="feature-icon">
+                        <i class="fas fa-database"></i>
+                    </div>
+                    <h4>Comprehensive Data</h4>
+                    <p>Covers various states, districts, markets, and commodities across India.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 text-center p-3">
+                    <div class="feature-icon">
+                        <i class="fas fa-user-friends"></i>
+                    </div>
+                    <h4>User-Friendly</h4>
+                    <p>Simple interface designed for farmers, traders, and agricultural professionals.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="mt-5">
+        <div class="container text-center">
+            <p>© 2025 Crop Price Predictor | Powered by Machine Learning</p>
+        </div>
+    </footer>
+    
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Form elements
+            const stateSelect = document.getElementById('state');
+            const districtSelect = document.getElementById('district');
+            const marketSelect = document.getElementById('market');
+            const commoditySelect = document.getElementById('commodity');
+            const varietySelect = document.getElementById('variety');
+            const gradeSelect = document.getElementById('grade');
+            const predictionForm = document.getElementById('prediction-form');
+            const loader = document.getElementById('loader');
+            const resultCard = document.getElementById('result-card');
+            const yesterdayPrice = document.getElementById('yesterday-price');
+            const todayPrice = document.getElementById('today-price');
+            const tomorrowPrice = document.getElementById('tomorrow-price');
+            // Event listeners for cascading dropdowns
+            stateSelect.addEventListener('change', function() {
+                // Reset dependent dropdowns
+                resetSelect(districtSelect, 'Select District');
+                resetSelect(marketSelect, 'Select Market');
+                districtSelect.disabled = true;
+                marketSelect.disabled = true;
+                
+                // Fetch districts for selected state
+                if (this.value) {
+                    fetchDistricts(this.value);
+                }
+            });
+            
+            districtSelect.addEventListener('change', function() {
+                // Reset market dropdown
+                resetSelect(marketSelect, 'Select Market');
+                marketSelect.disabled = true;
+                
+                // Fetch markets for selected district
+                if (this.value) {
+                    fetchMarkets(this.value);
+                }
+            });
+            
+            commoditySelect.addEventListener('change', function() {
+                // Reset dependent dropdowns
+                resetSelect(varietySelect, 'Select Variety');
+                resetSelect(gradeSelect, 'Select Grade');
+                varietySelect.disabled = true;
+                gradeSelect.disabled = true;
+                
+                // Fetch varieties for selected commodity
+                if (this.value) {
+                    fetchVarieties(this.value);
+                }
+            });
+            
+            varietySelect.addEventListener('change', function() {
+                // Reset grade dropdown
+                resetSelect(gradeSelect, 'Select Grade');
+                gradeSelect.disabled = true;
+                
+                // Fetch grades for selected variety
+                if (this.value) {
+                    fetchGrades(this.value);
+                }
+            });
+            
+            // Form submission
+            predictionForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Show loader and hide result
+                loader.style.display = 'block';
+                resultCard.style.display = 'none';
+                
+                // Prepare data for prediction
+                const data = {
+                    state: stateSelect.value,
+                    district: districtSelect.value,
+                    market: marketSelect.value,
+                    commodity: commoditySelect.value,
+                    variety: varietySelect.value,
+                    grade: gradeSelect.value
+                };
+                
+                // Send prediction request
+                fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Hide loader
+                    loader.style.display = 'none';
+                    
+                    if (data.success) {
+                        // Update price values
+                        document.getElementById('yesterday-price').textContent = data.yesterday_price;
+                        document.getElementById('today-price').textContent = data.today_price;
+                        document.getElementById('tomorrow-price').textContent = data.tomorrow_price;
+                        
+                        // Update date labels
+                        document.getElementById('yesterday-date').textContent = formatDate(data.yesterday_date);
+                        document.getElementById('today-date').textContent = formatDate(data.today_date);
+                        document.getElementById('tomorrow-date').textContent = formatDate(data.tomorrow_date);
+                        
+                        // Show result card
+                        resultCard.style.display = 'block';
+                        
+                        // Create or update price history chart
+                        createPriceHistoryChart(data.historical_dates, data.historical_prices);
+                        
+                        // Scroll to result
+                        resultCard.scrollIntoView({ behavior: 'smooth' });
+                    } else {
+                        // Show error
+                        alert('Error: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    // Hide loader and show error
+                    loader.style.display = 'none';
+                    alert('Error: ' + error);
+                });
+            });
+            
+            // Helper functions
+            function resetSelect(selectElement, defaultText) {
+                selectElement.innerHTML = `<option value="" selected disabled>${defaultText}</option>`;
+                selectElement.disabled = true;
+            }
+            
+            function fetchDistricts(state) {
+                fetch('/get_districts', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ state: state })
+                })
+                .then(response => response.json())
+                .then(districts => {
+                    populateSelect(districtSelect, districts, 'Select District');
+                    districtSelect.disabled = false;
+                })
+                .catch(error => console.error('Error fetching districts:', error));
+            }
+            
+            function fetchMarkets(district) {
+                fetch('/get_markets', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ district: district })
+                })
+                .then(response => response.json())
+                .then(markets => {
+                    populateSelect(marketSelect, markets, 'Select Market');
+                    marketSelect.disabled = false;
+                })
+                .catch(error => console.error('Error fetching markets:', error));
+            }
+            
+            function fetchVarieties(commodity) {
+                fetch('/get_varieties', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ commodity: commodity })
+                })
+                .then(response => response.json())
+                .then(varieties => {
+                    populateSelect(varietySelect, varieties, 'Select Variety');
+                    varietySelect.disabled = false;
+                })
+                .catch(error => console.error('Error fetching varieties:', error));
+            }
+            
+            function fetchGrades(variety) {
+                fetch('/get_grades', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ variety: variety })
+                })
+                .then(response => response.json())
+                .then(grades => {
+                    populateSelect(gradeSelect, grades, 'Select Grade');
+                    gradeSelect.disabled = false;
+                })
+                .catch(error => console.error('Error fetching grades:', error));
+            }
+            
+            function populateSelect(selectElement, options, defaultText) {
+                // Clear existing options
+                selectElement.innerHTML = `<option value="" disabled>${defaultText}</option>`;
+                
+                // Add new options
+                options.forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option;
+                    optionElement.textContent = option;
+                    selectElement.appendChild(optionElement);
+                });
+                
+                // Select first option if available
+                if (options.length > 0) {
+                    selectElement.selectedIndex = 1;
+                }
+            }
+            
+            // Format date for display
+            function formatDate(dateString) {
+                const date = new Date(dateString);
+                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            }
+            
+            // Price history chart variable
+            let priceHistoryChart = null;
+            
+            // Create or update price history chart
+            function createPriceHistoryChart(dates, prices) {
+                const ctx = document.getElementById('price-history-chart').getContext('2d');
+                
+                // Destroy existing chart if it exists
+                if (priceHistoryChart) {
+                    priceHistoryChart.destroy();
+                }
+                
+                // Format dates for display
+                const formattedDates = dates.map(date => {
+                    const d = new Date(date);
+                    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                });
+                
+                // Create new chart
+                priceHistoryChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: formattedDates,
+                        datasets: [{
+                            label: 'Historical Modal Prices',
+                            data: prices,
+                            backgroundColor: 'rgba(76, 175, 80, 0.2)',
+                            borderColor: 'rgba(76, 175, 80, 1)',
+                            borderWidth: 2,
+                            pointBackgroundColor: 'rgba(76, 175, 80, 1)',
+                            pointBorderColor: '#fff',
+                            pointRadius: 4,
+                            tension: 0.3
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                title: {
+                                    display: true,
+                                    text: 'Price (₹)'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Date'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top'
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                titleFont: {
+                                    size: 14
+                                },
+                                bodyFont: {
+                                    size: 13
+                                },
+                                callbacks: {
+                                    label: function(context) {
+                                        return `Price: ₹${context.raw}`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
