@@ -1,7 +1,3 @@
-Here is a more creative, engaging, and comprehensive version of your `README.md`. It keeps all your technical details and setup steps intact but adds a narrative hook, visual clarity, and clean formatting to make the repository stand out.
-
-You can copy and paste this directly into your GitHub editor:
-
 ```markdown
 # 🌾 Crop Price Predictor AI 🚀
 
