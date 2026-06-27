@@ -1,85 +1,144 @@
-# Crop Price Predictor Web Application
+# Crop Price Predictor AI Web Application
 
-## Overview
+An interactive web application that uses a trained machine learning model to predict crop prices based on location, crop type, variety, and grade. The application features a clean Model-View-Controller (MVC) directory layout, consolidated frontend assets, system-integrated dark mode, and an interactive price trend visualization.
 
-This web application uses a trained linear regression model to predict crop prices based on various factors such as location, crop type, variety, and grade. The application provides a modern, responsive user interface with interactive features for data visualization.
-
-## Features
-
-- **Crop Price Prediction**: Predict crop prices using a trained machine learning model
-- **Interactive UI**: Modern, responsive design with Bootstrap
-- **Dynamic Dropdowns**: Cascading dropdowns for state, district, market, commodity, variety, and grade
-- **Data Visualization**: Historical price trends displayed using Chart.js
-- **Price Statistics**: Display of yesterday's, today's, and tomorrow's prices
-- **Dark Mode Support**: Automatic dark mode based on system preferences
-- **Responsive Design**: Works on desktop, tablet, and mobile devices
+---
 
 ## Project Structure
 
+The project has been restructured to separate data, model binaries, source code, and static assets:
+
+```text
+cropprice_ai/
+├── data/
+│   └── dataset.csv                     # The raw crop price dataset
+├── models/
+│   └── linear_regression_model.pkl     # The trained scikit-learn model binary
+├── src/
+│   ├── app.py                          # The Flask web application server
+│   ├── train.py                        # The model training pipeline script
+│   ├── static/                         # Static assets served by Flask
+│   │   ├── css/
+│   │   │   └── style.css               # Consolidated stylesheets (variables, layout, dark mode)
+│   │   └── js/
+│   │       └── script.js               # Consolidated JS (dropdowns, Chart.js, animations, tooltips)
+│   └── templates/
+│       └── index.html                  # Clean HTML interface (linked to static assets)
+├── requirements.txt                    # Python dependencies
+└── README.md                           # Documentation
 ```
-crop_ai/
-├── app.py                  # Flask application
-├── linear_regression_model.pkl  # Trained model
-├── 9ef84268-d588-465a-a308-a864a43d0070.csv  # Dataset
-├── crop_price.py           # Original model training code
-├── requirements.txt        # Project dependencies
-├── static/                 # Static files
-│   ├── style.css           # Custom CSS
-│   └── script.js           # Custom JavaScript
-└── templates/              # HTML templates
-    └── index.html          # Main application page
-```
 
-## Installation
+---
 
-1. Ensure you have Python installed (version 3.6 or higher)
-2. Install the required dependencies:
+## Features
 
+* **MVC Restructuring:** Clean separation of concerns separating source code, data, and models.
+* **Refactored ML Training Pipeline:** Corrected out-of-order execution script that preprocesses, trains, evaluates, and exports the model sequentially.
+* **Cascading Dynamic Dropdowns:** Dropdowns (State $\rightarrow$ District $\rightarrow$ Market and Commodity $\rightarrow$ Variety $\rightarrow$ Grade) automatically load and filter options from the dataset.
+* **Linear Price Trend Chart:** Renders a 3-day line chart (Yesterday, Today, and Tomorrow) showing the simulated price direction, preventing empty chart displays.
+* **Absolute Path Resolution:** Uses robust file path resolution so the application can be run from any working directory without path failures.
+* **Dark Mode Support:** Auto-detects system preferences and switches layout colors dynamically.
+* **Polished UX:** Includes custom scrollbars, card hover micro-animations, scroll-based fade-in effects, and informative feature card tooltips.
+
+---
+
+## Installation & Setup
+
+### Prerequisites
+* Python 3.8 or higher installed on your system.
+* Pip (Python package manager).
+
+### 1. Clone or Open the Project
+Ensure you are in the project root directory:
 ```bash
-python -m pip install flask pandas numpy joblib scikit-learn
+cd d:\CropPriceAI\cropprice_ai
 ```
 
-## Running the Application
+### 2. Set Up a Virtual Environment (Recommended)
+Creating a virtual environment prevents package conflicts:
 
-1. Navigate to the project directory:
+* **On Windows:**
+  ```powershell
+  python -m venv venv
+  .\venv\Scripts\Activate.ps1
+  ```
+* **On macOS/Linux:**
+  ```bash
+  python3 -m venv venv
+  source venv/bin/activate
+  ```
 
+### 3. Install Dependencies
+Install all required libraries from `requirements.txt`:
 ```bash
-cd path/to/crop_ai
+python -m pip install -r requirements.txt
 ```
+*(Dependencies include: `flask`, `pandas`, `numpy`, `scikit-learn`, and `joblib`)*
 
-2. Run the Flask application:
+---
 
+## Step-by-Step Usage Guide
+
+### Step 1: Train the Machine Learning Model
+Before running the web app, you must train the linear regression model. The pipeline loads the dataset, cleans it, applies one-hot encoding, trains the model, and exports it to the `models/` directory.
+
+Run the training script:
 ```bash
-python app.py
+python src/train.py
 ```
 
-3. Open your web browser and go to http://127.0.0.1:5000
+**Expected Console Output:**
+```text
+Starting crop price model training pipeline...
+Loading dataset from: D:\CropPriceAI\cropprice_ai\data\dataset.csv
+Dataset loaded. Shape: (17628, 10)
+Dropped 'Arrival_Date' column.
+Applying one-hot encoding to categorical features...
+Preprocessed dataset shape: (17628, 2671)
+Training set size: 14102 samples
+Testing set size: 3526 samples
+Training Linear Regression model...
+Model training complete.
+Evaluating model performance...
+Mean Squared Error (MSE): 329999.37
+R-squared (R2) Score: 0.9896
+Exporting trained model to: D:\CropPriceAI\cropprice_ai\models\linear_regression_model.pkl
+Model successfully saved.
+Verifying exported model...
+Verification prediction success. Predicted price: 1332.61
+```
 
-## Usage
+### Step 2: Start the Web Application Server
+Launch the Flask development server:
+```bash
+python src/app.py
+```
 
-1. Select the state, district, market, commodity, variety, and grade from the dropdown menus
-2. Click the "Predict Price" button
-3. View yesterday's, today's, and tomorrow's prices along with the historical price chart
+**Expected Console Output:**
+```text
+ * Serving Flask app 'app'
+ * Debug mode: on
+ * Running on http://127.0.0.1:5000
+```
 
-## Model Information
+### Step 3: Run and Predict
+1. Open your web browser and navigate to **`http://127.0.0.1:5000`**.
+2. Select your geographical parameters:
+   * Choose a **State**. This dynamically activates and filters the **District** dropdown.
+   * Choose a **District**. This dynamically activates and filters the **Market** dropdown.
+3. Select your agricultural parameters:
+   * Choose a **Commodity** (crop). This dynamically activates and filters the **Variety** dropdown.
+   * Choose a **Variety**. This dynamically activates and filters the **Grade** dropdown.
+4. Click **Predict Price**.
+5. View the predicted prices for Yesterday, Today, and Tomorrow, and explore the **Predicted Modal Price Trend** line chart below.
 
-The application uses a linear regression model trained on historical crop price data. The model takes into account various factors such as location, crop type, variety, and grade to predict crop prices.
+---
 
-## Troubleshooting
+## Technical Details
 
-- If you encounter a version warning about the model, you may need to retrain the model using the same scikit-learn version as your installation
-- If the application fails to start, ensure all dependencies are installed correctly
-- If you encounter Chart.js errors related to canvas reuse, the application includes a fix that properly destroys and recreates chart instances
-- For any other issues, check the console output for error messages
-
-## Future Improvements
-
-- Add user authentication for personalized predictions
-- Implement more advanced machine learning models
-- Add export functionality for prediction results
-- Integrate with external APIs for real-time market data
-- Add multi-language support
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
+### Linear Price Trend Simulation
+Because the underlying dataset contains records from a single unique date (`11-09-2025`), there is no historical time-series data available. To show a price direction:
+* **Today's Price:** The model makes a baseline prediction using average min/max historical values for that combination.
+* **Yesterday's Price:** Simulated by scaling the min/max feature values down by 5% ($0.95 \times$ price) and running the model.
+* **Tomorrow's Price:** Simulated by scaling the min/max feature values up by 5% ($1.05 \times$ price) and running the model.
+* These three values are plotted on the Chart.js line chart to visualize the predicted slope.
