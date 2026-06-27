@@ -5,13 +5,23 @@ import joblib
 import os
 from datetime import datetime, timedelta
 
+# Determine absolute paths dynamically relative to this file's location
+# src/app.py is inside src/, so its parent is the project root directory
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+MODEL_PATH = os.path.join(BASE_DIR, 'models', 'linear_regression_model.pkl')
+DATASET_PATH = os.path.join(BASE_DIR, 'data', 'dataset.csv')
+
 app = Flask(__name__)
 
 # Load the trained model
-model = joblib.load('linear_regression_model.pkl')
+if not os.path.exists(MODEL_PATH):
+    raise FileNotFoundError(f"Model file not found at {MODEL_PATH}. Please run train.py first.")
+model = joblib.load(MODEL_PATH)
 
 # Load the full dataset for dropdowns and historical data
-df = pd.read_csv('9ef84268-d588-465a-a308-a864a43d0070.csv')
+if not os.path.exists(DATASET_PATH):
+    raise FileNotFoundError(f"Dataset file not found at {DATASET_PATH}.")
+df = pd.read_csv(DATASET_PATH)
 
 # Create a sample for faster operations
 df_sample = df.copy()

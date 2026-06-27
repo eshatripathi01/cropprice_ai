@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crop Price Predictor</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Consolidated External CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-leaf me-2"></i>Crop Price Predictor
+            </a>
+        </div>
+    </nav>
+    
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <div class="container text-center">
+            <h1>Predict Crop Prices with AI</h1>
+            <p class="lead">Our machine learning model helps you predict modal prices for various crops across India</p>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="row">
+            <!-- Input Form -->
+            <div class="col-lg-8 mx-auto">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-calculator me-2"></i>Price Prediction Tool
+                    </div>
+                    <div class="card-body">
+                        <form id="prediction-form">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="state" class="form-label">State</label>
+                                    <select class="form-select" id="state" required>
+                                        <option value="" selected disabled>Select State</option>
+                                        {% for state in states %}
+                                        <option value="{{ state }}">{{ state }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="district" class="form-label">District</label>
+                                    <select class="form-select" id="district" required disabled>
+                                        <option value="" selected disabled>Select District</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="market" class="form-label">Market</label>
+                                    <select class="form-select" id="market" required disabled>
+                                        <option value="" selected disabled>Select Market</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="commodity" class="form-label">Commodity</label>
+                                    <select class="form-select" id="commodity" required>
+                                        <option value="" selected disabled>Select Commodity</option>
+                                        {% for commodity in commodities %}
+                                        <option value="{{ commodity }}">{{ commodity }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="variety" class="form-label">Variety</label>
+                                    <select class="form-select" id="variety" required disabled>
+                                        <option value="" selected disabled>Select Variety</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="grade" class="form-label">Grade</label>
+                                    <select class="form-select" id="grade" required disabled>
+                                        <option value="" selected disabled>Select Grade</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-search-dollar me-2"></i>Predict Price
+                                </button>
+                            </div>
+                        </form>
+                        
+                        <!-- Loader -->
+                        <div class="loader" id="loader"></div>
+                        
+                        <!-- Results Card -->
+                        <div class="card mt-4 result-card" id="result-card">
+                            <div class="card-body">
+                                <h4 class="card-title text-center mb-4">Crop Price Statistics</h4>
+                                
+                                <div class="row">
+                                    <!-- Yesterday's Price -->
+                                    <div class="col-md-4 text-center">
+                                        <div class="price-card">
+                                            <h5 class="date-label" id="yesterday-date">Yesterday</h5>
+                                            <div class="price-value">₹ <span id="yesterday-price">0</span></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Today's Price -->
+                                    <div class="col-md-4 text-center">
+                                        <div class="price-card today">
+                                            <h5 class="date-label" id="today-date">Today</h5>
+                                            <div class="price-value">₹ <span id="today-price">0</span></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Tomorrow's Price -->
+                                    <div class="col-md-4 text-center">
+                                        <div class="price-card">
+                                            <h5 class="date-label" id="tomorrow-date">Tomorrow</h5>
+                                            <div class="price-value">₹ <span id="tomorrow-price">0</span></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-4">
+                                    <p class="card-text text-center">These are the predicted modal prices based on historical data and market trends.</p>
+                                </div>
+                                
+                                <!-- Chart for historical prices -->
+                                <div class="chart-container mt-4">
+                                    <canvas id="price-history-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Features Section -->
+        <div class="row mt-4">
+            <div class="col-12 text-center mb-4">
+                <h2>Why Use Our Crop Price Predictor?</h2>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 text-center p-3">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h4>Accurate Predictions</h4>
+                    <p>Our model is trained on extensive historical data to provide accurate price predictions.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 text-center p-3">
+                    <div class="feature-icon">
+                        <i class="fas fa-database"></i>
+                    </div>
+                    <h4>Comprehensive Data</h4>
+                    <p>Covers various states, districts, markets, and commodities across India.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 text-center p-3">
+                    <div class="feature-icon">
+                        <i class="fas fa-user-friends"></i>
+                    </div>
+                    <h4>User-Friendly</h4>
+                    <p>Simple interface designed for farmers, traders, and agricultural professionals.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="mt-5">
+        <div class="container text-center">
+            <p>© 2025 Crop Price Predictor | Powered by Machine Learning</p>
+        </div>
+    </footer>
+    
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Consolidated External JS -->
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
