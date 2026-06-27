@@ -177,6 +177,3 @@ This mathematical slope provides a clean, visual direction of potential market s
 
 Made with ❤️ for smarter agriculture.
 
-```
-
-```
