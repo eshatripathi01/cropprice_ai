@@ -1,0 +1,24 @@
+# Compiled WebAssembly and server binaries
+wagi.exe
+python.wasm
+wagi.tar.gz
+
+# Python caches and local files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.ipynb_checkpoints/
+
+# Virtual Environments
+.venv/
+venv/
+ENV/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE settings
+.vscode/
+.idea/

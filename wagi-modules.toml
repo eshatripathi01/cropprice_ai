@@ -1,0 +1,29 @@
+# WAGI Configuration for Crop Price Predictor
+# This maps all HTTP routes to python.wasm and runs our pure-Python CGI app.
+
+[[module]]
+# Match all routes (e.g. /, /predict, /static/css/style.css)
+route = "/..."
+
+# The WebAssembly binary of the Python runtime (WASI target).
+# You can download python.wasm from:
+# https://github.com/vmware-labs/webassembly-language-runtimes/releases
+module = "python.wasm"
+
+# Mount directories from the host filesystem into the WebAssembly sandbox.
+# Format: "host_path:guest_path"
+# Relative paths are resolved against the directory where WAGI is run.
+volumes = [
+    "src:src",
+    "models:models"
+]
+
+# Arguments passed to the python.wasm module.
+# The first argument is the script to run, which must be within one of the mounted volumes.
+args = [
+    "/src/wagi_app.py"
+]
+
+# Environment variables to pass to the module (optional)
+[module.environment]
+PYTHONPATH = "/src"
