@@ -1,4 +1,3 @@
-```markdown
 # 🌾 Crop Price Predictor AI 🚀
 
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/)
@@ -33,7 +32,6 @@ cropprice_ai/
 │       └── index.html                  # Clean, semantic HTML5 user interface (View)
 ├── requirements.txt                    # Python package dependencies
 └── README.md                           # Project documentation
-
 ```
 
 ---
