@@ -222,8 +222,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Show result card
                     resultCard.style.display = 'block';
                     
-                    // Create or update price history chart
-                    createPriceHistoryChart(data.historical_dates, data.historical_prices);
+                    // Create or update price trend chart (Yesterday, Today, Tomorrow)
+                    const trendDates = [data.yesterday_date, data.today_date, data.tomorrow_date];
+                    const trendPrices = [data.yesterday_price, data.today_price, data.tomorrow_price];
+                    createPriceHistoryChart(trendDates, trendPrices);
                     
                     // Smooth scroll to results
                     setTimeout(() => {
@@ -284,7 +286,7 @@ document.addEventListener('DOMContentLoaded', function() {
             data: {
                 labels: formattedDates,
                 datasets: [{
-                    label: 'Historical Modal Prices',
+                    label: 'Predicted Modal Price Trend',
                     data: prices,
                     backgroundColor: 'rgba(76, 175, 80, 0.15)',
                     borderColor: 'rgba(76, 175, 80, 1)',
